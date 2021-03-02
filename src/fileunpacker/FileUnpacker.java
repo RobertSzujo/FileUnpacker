@@ -71,7 +71,7 @@ public class FileUnpacker {
                 byte[] buffer = new byte[1024];
                 //Load first file in zip
                 ZipEntry ze = zis.getNextEntry();
-                while (ze != null) //Unpack files until the zip ends (null entry)
+                while (ze != null && fileList.size() > 0) //Unpack files until the zip ends (null entry) or all files are found
                 {
                     String fileName = ze.getName();
                     if (fileList.contains(fileName)) {
