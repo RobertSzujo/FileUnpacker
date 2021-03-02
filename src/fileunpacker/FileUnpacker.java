@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.Scanner;
 import java.util.HashSet;
@@ -14,12 +15,14 @@ public class FileUnpacker {
 
     public static void main(String[] args) {
         //TODO: Make possible to choose your own directory/files.
-        String input = "C:\\Users\\Robi\\Desktop\\fileunpacker\\input\\1.zip";
+        String input = "C:\\Users\\Robi\\Desktop\\fileunpacker\\input\\";
         String txt = "C:\\Users\\Robi\\Desktop\\fileunpacker\\txt\\list.txt";
         String output = "C:\\Users\\Robi\\Desktop\\fileunpacker\\output\\";
         HashSet<String> fileList = new HashSet<>();
         GetFileList(txt, fileList);
-        UnpackZip(input, output);
+        HashSet<String> zipList = new HashSet<>();
+        String[] inputFiles = GetZipList(input);
+        UnpackZip(input, output, fileList);
     }
     
     private static void GetFileList (String listFile, HashSet<String> fileList)
@@ -38,6 +41,21 @@ public class FileUnpacker {
         }
     }
     
+    private static String[] GetZipList (String input)
+    {
+        File inputDir = new File (input);
+        //Create filter to find .zip files in folder
+        FilenameFilter filter = new FilenameFilter()
+        {
+            public boolean accept (File inputDir, String name)
+            {
+                return name.toLowerCase().endsWith(".zip");
+            }
+        };
+        String[] files = inputDir.list(filter);
+        return files;
+    }
+    
     private static void ReportError (String errorText)
     {
         System.out.println(errorText);
@@ -45,13 +63,12 @@ public class FileUnpacker {
         //TODO: Print error on screen and write to new text file
     }
     
-    private static void UnpackZip (String inputFile, String outputDir)
+    private static void UnpackZip (String inputFile, String outputDir, HashSet<String> fileList)
     {
-        //TODO: unpack only specified list of files
-        
         //Set output directory 
         File output = new File (outputDir);
-        
+        //Set int to number of files to search
+        int filesToSearch = fileList.size();
         try{
             //Load ZIP file as input stream, set buffer
             FileInputStream fis = new FileInputStream(inputFile);
@@ -84,7 +101,7 @@ public class FileUnpacker {
         }
         catch (IOException e)
         {
-            System.out.println(e);
+            ReportError(e.getMessage());
         }
         
         
