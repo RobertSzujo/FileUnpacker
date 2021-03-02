@@ -2,8 +2,11 @@ package fileunpacker;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Scanner;
+import java.util.HashSet;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -14,7 +17,32 @@ public class FileUnpacker {
         String input = "C:\\Users\\Robi\\Desktop\\fileunpacker\\input\\1.zip";
         String txt = "C:\\Users\\Robi\\Desktop\\fileunpacker\\txt\\list.txt";
         String output = "C:\\Users\\Robi\\Desktop\\fileunpacker\\output\\";
+        HashSet<String> fileList = new HashSet<>();
+        GetFileList(txt, fileList);
         UnpackZip(input, output);
+    }
+    
+    private static void GetFileList (String listFile, HashSet<String> fileList)
+    {
+        File listTxt = new File (listFile);
+        //Start to read list of files
+        try
+        {
+            Scanner scan = new Scanner(listTxt);
+            while (scan.hasNextLine()) //Read list of files until txt ends.
+            {
+                fileList.add(scan.nextLine());
+            }
+        } catch (Exception e) { //Call report error method if something's wrong
+            ReportError(e.getMessage());
+        }
+    }
+    
+    private static void ReportError (String errorText)
+    {
+        System.out.println(errorText);
+        System.exit(0); //Stop program
+        //TODO: Print error on screen and write to new text file
     }
     
     private static void UnpackZip (String inputFile, String outputDir)
