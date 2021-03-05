@@ -13,7 +13,6 @@ public class FileUnpacker {
         CheckArgs(args);
         String input = args[0];
         String output = args[1];
-
         String txt = args[2];
         HashSet<String> fileList = GetFileList(txt);
         String[] zipList = GetZipList(input);
@@ -34,7 +33,6 @@ public class FileUnpacker {
         }
         else
         {
-            //TODO: check if file/folder path is valid
             return;
         }
     }
@@ -51,6 +49,11 @@ public class FileUnpacker {
             }
         } catch (Exception e) { //Call report error method if something's wrong
             ReportError(e.getMessage());
+        }
+        //Throw error if there are no files in the list (or the list is not a text file)
+        if (fileList.size() == 0)
+        {
+            ReportError("A kicsomagolandó fájlok listája üres, vagy nem szöveges fájl. Minden egyes fájlt külön sorba kell írni, más adatot nem tartalmazhat a listafájl!");
         }
         return fileList;
     }
