@@ -9,14 +9,14 @@ public class FileUnpacker {
 
     public static void main(String[] args) {
         checkArgsSyntax(args);
-        File inputDir = new File (args[0]);
-        File outputDir = new File (args[1]);
-        File fileListTxt = new File (args[2]);
-        validateLocations (inputDir, outputDir, fileListTxt);
+        File inputDir = new File(args[0]);
+        File outputDir = new File(args[1]);
+        File fileListTxt = new File(args[2]);
+        validateLocations(inputDir, outputDir, fileListTxt);
         Set<String> filesToUnpack = getFileList(fileListTxt);
         String[] zipFileList = getZipList(inputDir);
         //Create new ZipHandler object
-        ZipHandler zipHandler = new ZipHandler (inputDir, zipFileList, filesToUnpack, outputDir);
+        ZipHandler zipHandler = new ZipHandler(inputDir, zipFileList, filesToUnpack, outputDir);
         Map<String, Set<String>> fileLocations = zipHandler.searchFilesInZips();
         zipHandler.unpackZipFiles(fileLocations);
         showSuccesfulResult();
@@ -117,6 +117,35 @@ class ZipHandler {
 
     }
 
+    private static void searchSingleFileInZip(Set<String> filesToUnpack, Set<String> filesInThisZip, ZipInputStream zipInputStream, ZipEntry zipEntry) throws IOException {
+        String fileName = zipEntry.getName();
+        if (filesToUnpack.contains(fileName)) {
+            filesInThisZip.add(fileName); //Add found file to "files in this zip" list
+            zipInputStream.closeEntry();
+            //Remove unpacked file from "files to extract" list
+            filesToUnpack.remove(fileName);
+        }
+    }
+
+    private static void unpackSingleFileFromZip(Map<String, Set<String>> fileLocations, File outputDir, String currentZipFile, ZipInputStream zipInputStream, byte[] buffer, ZipEntry zipEntry) throws IOException {
+        String currentFileInZip = zipEntry.getName();
+        if (fileLocations.get(currentZipFile).contains(currentFileInZip)) {
+            File newFile = new File(outputDir.getAbsolutePath() + File.separator + currentFileInZip);
+            System.out.println(currentFileInZip + " kicsomagolása a " + currentZipFile + " csomagból.");
+            //Create output file stream
+            FileOutputStream fos = new FileOutputStream(newFile);
+            int length;
+            while ((length = zipInputStream.read(buffer)) > 0) { //Write file until it ends.
+                fos.write(buffer, 0, length);
+            }
+            //Stop file output and zip entry
+            fos.close();
+            zipInputStream.closeEntry();
+            //Remove unpacked file from "files to extract" list
+            fileLocations.get(currentZipFile).remove(currentFileInZip);
+        }
+    }
+
     public Map<String, Set<String>> searchFilesInZips() {
         Map<String, Set<String>> fileLocations = new HashMap<>();
         //Set int to index of zip to search
@@ -158,16 +187,6 @@ class ZipHandler {
         }
     }
 
-    private static void searchSingleFileInZip(Set<String> filesToUnpack, Set<String> filesInThisZip, ZipInputStream zipInputStream, ZipEntry zipEntry) throws IOException {
-        String fileName = zipEntry.getName();
-        if (filesToUnpack.contains(fileName)) {
-            filesInThisZip.add(fileName); //Add found file to "files in this zip" list
-            zipInputStream.closeEntry();
-            //Remove unpacked file from "files to extract" list
-            filesToUnpack.remove(fileName);
-        }
-    }
-
     public void unpackZipFiles(Map<String, Set<String>> fileLocations) {
         for (String currentZipFile : fileLocations.keySet()) //Go through all files in zip file map
             unpackOneZip(currentZipFile, fileLocations);
@@ -192,25 +211,6 @@ class ZipHandler {
             fileInputStream.close();
         } catch (IOException e) {
             FileUnpacker.reportError(e.getMessage());
-        }
-    }
-
-    private static void unpackSingleFileFromZip(Map<String, Set<String>> fileLocations, File outputDir, String currentZipFile, ZipInputStream zipInputStream, byte[] buffer, ZipEntry zipEntry) throws IOException {
-        String currentFileInZip = zipEntry.getName();
-        if (fileLocations.get(currentZipFile).contains(currentFileInZip)) {
-            File newFile = new File(outputDir.getAbsolutePath() + File.separator + currentFileInZip);
-            System.out.println(currentFileInZip + " kicsomagolása a " + currentZipFile + " csomagból.");
-            //Create output file stream
-            FileOutputStream fos = new FileOutputStream(newFile);
-            int length;
-            while ((length = zipInputStream.read(buffer)) > 0) { //Write file until it ends.
-                fos.write(buffer, 0, length);
-            }
-            //Stop file output and zip entry
-            fos.close();
-            zipInputStream.closeEntry();
-            //Remove unpacked file from "files to extract" list
-            fileLocations.get(currentZipFile).remove(currentFileInZip);
         }
     }
 }
