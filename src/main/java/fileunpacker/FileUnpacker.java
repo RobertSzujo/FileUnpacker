@@ -8,10 +8,11 @@ import java.util.zip.ZipInputStream;
 public class FileUnpacker {
 
     public static void main(String[] args) {
-        checkArgs(args);
-        String inputDir = args[0];
-        String outputDir = args[1];
-        String fileListTxt = args[2];
+        checkArgsSyntax(args);
+        File inputDir = new File (args[0]);
+        File outputDir = new File (args[1]);
+        File fileListTxt = new File (args[2]);
+        validateLocations (inputDir, outputDir, fileListTxt);
         Set<String> filesToUnpack = getFileList(fileListTxt);
         String[] zipFileList = getZipList(inputDir);
         //Create new ZipHandler object
@@ -21,7 +22,7 @@ public class FileUnpacker {
         showSuccesfulResult();
     }
 
-    private static void checkArgs(String[] args) {
+    private static void checkArgsSyntax(String[] args) {
         if (args.length < 3) {
             reportError("Túl kevés paraméter került megadásra! Helyes használat: fileunpacker <zip fájlok mappája> <kicsomagolási mappa> <fájlok listáját tartalmazó szövegfájl>");
         } else if (args.length > 3) {
@@ -29,27 +30,43 @@ public class FileUnpacker {
         }
     }
 
-    private static Set<String> getFileList(String listFile) {
-        Set<String> fileList = new HashSet<>();
-        File listTxt = new File(listFile);
+    private static void validateLocations(File inputDir, File outputDir, File fileListTxt) {
+        if (!inputDir.exists() || !inputDir.canRead()) {
+            reportError("A bemeneti zip fájlokat tartalmazó mappa nem létezik, vagy nem olvasható!");
+        }
+        if (!outputDir.exists()) {
+            System.out.println("A kimeneti mappa nem létezik, ezért létrehozásra kerül!");
+            if (!outputDir.mkdir()) {
+                reportError("Nem sikerült a kimeneti mappa létrehozása!");
+            }
+        }
+        if (!outputDir.canWrite()) {
+            reportError("A kimeneti mappa nem írható!");
+        }
+        if (!fileListTxt.canRead() || !fileListTxt.exists()) {
+            reportError("A fájlok listáját tartalmazó szövegfájl nem létezik, vagy nem olvasható!");
+        }
+    }
+
+    private static Set<String> getFileList(File fileListTxt) {
+        Set<String> filesToUnpack = new HashSet<>();
         //Start to read list of files
         try {
-            Scanner scan = new Scanner(listTxt);
+            Scanner scan = new Scanner(fileListTxt);
             while (scan.hasNextLine()) { //Read list of files until txt ends.
-                fileList.add(scan.nextLine());
+                filesToUnpack.add(scan.nextLine());
             }
         } catch (Exception e) { //Call report error method if something's wrong
             reportError(e.getMessage());
         }
         //Throw error if there are no files in the list (or the list is not a text file)
-        if (fileList.size() == 0) {
+        if (filesToUnpack.size() == 0) {
             reportError("A kicsomagolandó fájlok listája üres, vagy nem szöveges fájl. Minden egyes fájlt külön sorba kell írni, más adatot nem tartalmazhat a listafájl!");
         }
-        return fileList;
+        return filesToUnpack;
     }
 
-    private static String[] getZipList(String input) {
-        File inputDir = new File(input);
+    private static String[] getZipList(File inputDir) {
         //Create filter to find .zip files in folder
         FilenameFilter filter = (inputDir1, name) -> name.toLowerCase().endsWith(".zip");
         //Get and return string array with list of zip files in folder
@@ -87,12 +104,12 @@ public class FileUnpacker {
 }
 
 class ZipHandler {
-    String inputDir;
+    File inputDir;
     String[] zipFileList;
     Set<String> filesToUnpack;
-    String outputDir;
+    File outputDir;
 
-    public ZipHandler(String inputDir, String[] zipFileList, Set<String> filesToUnpack, String outputDir) {
+    public ZipHandler(File inputDir, String[] zipFileList, Set<String> filesToUnpack, File outputDir) {
         this.inputDir = inputDir;
         this.zipFileList = zipFileList;
         this.filesToUnpack = filesToUnpack;
@@ -105,7 +122,7 @@ class ZipHandler {
         //Set int to index of zip to search
         int zipIndex = 0;
         while (filesToUnpack.size() > 0 && zipIndex <= zipFileList.length - 1) {
-            String currentZipFile = inputDir + zipFileList[zipIndex];
+            String currentZipFile = inputDir.getAbsolutePath() + File.separator + zipFileList[zipIndex];
             searchInOneZip(currentZipFile, fileLocations);
             //Go to next zip
             zipIndex++;
@@ -178,10 +195,10 @@ class ZipHandler {
         }
     }
 
-    private static void unpackSingleFileFromZip(Map<String, Set<String>> fileLocations, String outputDir, String currentZipFile, ZipInputStream zipInputStream, byte[] buffer, ZipEntry zipEntry) throws IOException {
+    private static void unpackSingleFileFromZip(Map<String, Set<String>> fileLocations, File outputDir, String currentZipFile, ZipInputStream zipInputStream, byte[] buffer, ZipEntry zipEntry) throws IOException {
         String currentFileInZip = zipEntry.getName();
         if (fileLocations.get(currentZipFile).contains(currentFileInZip)) {
-            File newFile = new File(outputDir + File.separator + currentFileInZip);
+            File newFile = new File(outputDir.getAbsolutePath() + File.separator + currentFileInZip);
             System.out.println(currentFileInZip + " kicsomagolása a " + currentZipFile + " csomagból.");
             //Create output file stream
             FileOutputStream fos = new FileOutputStream(newFile);
