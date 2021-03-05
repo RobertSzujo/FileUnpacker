@@ -1,6 +1,7 @@
 package fileunpacker;
 
 import java.io.*;
+import java.util.HashMap;
 import java.util.Scanner;
 import java.util.HashSet;
 import java.util.zip.ZipEntry;
@@ -16,7 +17,8 @@ public class FileUnpacker {
         HashSet<String> fileList = new HashSet<>();
         GetFileList(txt, fileList);
         String[] zipList = GetZipList(input);
-        UnpackZip(input, zipList, output, fileList);
+        HashMap<String, HashSet<String>> fileMap = FindFilesInZip(input, zipList, fileList);
+        UnpackZip(fileMap, output);
         ShowResult(fileList);
     }
 
@@ -64,6 +66,52 @@ public class FileUnpacker {
         return files;
     }
 
+    private static HashMap<String, HashSet<String>> FindFilesInZip(String input, String[] zipList, HashSet<String> fileList)
+    {
+        //Create HashMap to store files list for each zip
+        HashMap <String, HashSet<String>> fileMap = new HashMap<>();
+        //Set int to index of zip to search
+        int zipIndex = 0;
+        while (fileList.size() > 0 && zipIndex <= zipList.length - 1)
+        {
+            String inputFile = input + zipList[zipIndex];
+            try {
+                HashSet<String> filesInThisZip = new HashSet<>(); //Store found files here
+                //Load ZIP file as input stream, set buffer
+                FileInputStream fis = new FileInputStream(inputFile);
+                ZipInputStream zis = new ZipInputStream(fis);
+                //Load first file in zip
+                ZipEntry ze = zis.getNextEntry();
+                while (ze != null && fileList.size() > 0) //Find files until the zip ends (null entry) or all files are found
+                {
+                    String fileName = ze.getName();
+                    if (fileList.contains(fileName)) {
+                        filesInThisZip.add(fileName); //Add found file to "files in this zip" list
+                        zis.closeEntry();
+                        //Remove unpacked file from "files to extract" list
+                        fileList.remove(fileName);
+                    }
+                    //Load next file in zip
+                    ze = zis.getNextEntry();
+                }
+                //Close zip and file input stream if file is fully unpacked.
+                zis.close();
+                fis.close();
+                //Add file list from this zip to global file list
+                fileMap.put(inputFile, filesInThisZip);
+                //Go to next zip
+                zipIndex++;
+            } catch (IOException e) {
+                ReportError(e.getMessage());
+            }
+        }
+        //If there are missing files, throw error
+        if (fileList.size() > 0) {
+            ReportError("A következő fájlok egyik zip fájlban sem voltak megtalálhatóak:" + fileList);
+        }
+        return fileMap; //return global file map
+}
+
     private static void ReportError(String errorText) {
         //Create error file
         File errorFile = new File ("errorLog.txt");
@@ -76,33 +124,30 @@ public class FileUnpacker {
             System.out.println("Hiba történt a hibafájl írása során: " + e.getMessage());
         }
         //Display error info
-        System.out.println("A program futása során hiba történt. A hiba leírása a " + errorFile.getAbsolutePath() + " fájlban található.");
+        System.out.println("A program futása során hiba történt, ezért a kicsomagolás nem történt meg. A hiba leírása a " + errorFile.getAbsolutePath() + " fájlban található.");
         System.out.println("Nyomj Enter gombot a kilépéshez.");
         Scanner scan = new Scanner(System.in);
         scan.nextLine();
         System.exit(0); //Stop program
     }
 
-    private static void UnpackZip(String inputDir, String[] inputFiles, String outputDir, HashSet<String> fileList) {
+    private static void UnpackZip(HashMap<String, HashSet<String>> fileMap, String output) {
         //Set output directory 
-        File output = new File(outputDir);
-        //Set int to index of zip to search
-        int zipIndex = 0;
-        while (fileList.size() > 0 && zipIndex <= inputFiles.length - 1) { //Keep searching until all files are found or all zips are done
-            String inputFile = inputDir + inputFiles[zipIndex];
+        File outputDir = new File(output);
+        for (String zipFile : fileMap.keySet()) //Go through all files in zip file map
             try {
                 //Load ZIP file as input stream, set buffer
-                FileInputStream fis = new FileInputStream(inputFile);
+                FileInputStream fis = new FileInputStream(zipFile);
                 ZipInputStream zis = new ZipInputStream(fis);
                 byte[] buffer = new byte[1024];
                 //Load first file in zip
                 ZipEntry ze = zis.getNextEntry();
-                while (ze != null && fileList.size() > 0) //Unpack files until the zip ends (null entry) or all files are found
+                while (ze != null && fileMap.get(zipFile).size() > 0) //Unpack needed files until the zip ends (null entry) or all files are found
                 {
-                    String fileName = ze.getName();
-                    if (fileList.contains(fileName)) {
-                        File newFile = new File(outputDir + File.separator + fileName);
-                        System.out.println(fileName + " kicsomagolása a " + inputFile + " csomagból.");
+                    String currentFileInZip = ze.getName();
+                    if (fileMap.get(zipFile).contains(currentFileInZip)) {
+                        File newFile = new File(output + File.separator + currentFileInZip);
+                        System.out.println(currentFileInZip + " kicsomagolása a " + zipFile + " csomagból.");
                         //Create output file stream
                         FileOutputStream fos = new FileOutputStream(newFile);
                         int len;
@@ -114,7 +159,7 @@ public class FileUnpacker {
                         fos.close();
                         zis.closeEntry();
                         //Remove unpacked file from "files to extract" list
-                        fileList.remove(fileName);
+                        fileMap.get(zipFile).remove(currentFileInZip);
                     }
                     //Load next file
                     ze = zis.getNextEntry();
@@ -122,22 +167,13 @@ public class FileUnpacker {
                 //Close zip and file input stream if file is fully unpacked.
                 zis.close();
                 fis.close();
-                zipIndex++;
             } catch (IOException e) {
                 ReportError(e.getMessage());
             }
         }
 
-    }
-
     private static void ShowResult(HashSet<String> fileList) {
-        if (fileList.size() > 0) {
-            ReportError("A következő fájlok egyik zip fájlban sem voltak megtalálhatóak, ezért ezeket nem sikerült kicsomagolni:" + fileList);
-        }
-        else
-        {
-            System.out.println("A fájlok kicsomagolása sikeresen megtörtént.");
-        }
+        System.out.println("A fájlok kicsomagolása sikeresen megtörtént.");
     }
 
 }
