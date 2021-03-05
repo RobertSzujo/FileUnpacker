@@ -13,9 +13,9 @@ public class FileUnpacker {
         CheckArgs(args);
         String input = args[0];
         String output = args[1];
+
         String txt = args[2];
-        HashSet<String> fileList = new HashSet<>();
-        GetFileList(txt, fileList);
+        HashSet<String> fileList = GetFileList(txt);
         String[] zipList = GetZipList(input);
         HashMap<String, HashSet<String>> fileMap = FindFilesInZip(input, zipList, fileList);
         UnpackZip(fileMap, output);
@@ -39,7 +39,8 @@ public class FileUnpacker {
         }
     }
 
-    private static void GetFileList(String listFile, HashSet<String> fileList) {
+    private static HashSet<String> GetFileList(String listFile) {
+        HashSet<String> fileList = new HashSet<>();
         File listTxt = new File(listFile);
         //Start to read list of files
         try {
@@ -51,6 +52,7 @@ public class FileUnpacker {
         } catch (Exception e) { //Call report error method if something's wrong
             ReportError(e.getMessage());
         }
+        return fileList;
     }
 
     private static String[] GetZipList(String input) {
@@ -63,6 +65,11 @@ public class FileUnpacker {
         };
         //Get and return string array with list of zip files in folder
         String[] files = inputDir.list(filter);
+        //If there are no zip files in folder, throw error
+        if (files.length == 0)
+        {
+            ReportError("A bemeneti mappában egy zip fájl sem volt megtalálható.");
+        }
         return files;
     }
 

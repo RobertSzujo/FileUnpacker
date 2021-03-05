@@ -52,4 +52,11 @@
     </task>
     <servers />
   </component>
+  <component name="XDebuggerManager">
+    <watches-manager>
+      <configuration name="Application">
+        <watch expression="fileMap" />
+      </configuration>
+    </watches-manager>
+  </component>
 </project>
