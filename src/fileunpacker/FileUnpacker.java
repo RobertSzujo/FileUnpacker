@@ -1,10 +1,6 @@
 package fileunpacker;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FilenameFilter;
-import java.io.IOException;
+import java.io.*;
 import java.util.Scanner;
 import java.util.HashSet;
 import java.util.zip.ZipEntry;
@@ -37,6 +33,7 @@ public class FileUnpacker {
         else
         {
             //TODO: check if file/folder path is valid
+            return;
         }
     }
 
@@ -68,9 +65,22 @@ public class FileUnpacker {
     }
 
     private static void ReportError(String errorText) {
-        System.out.println(errorText);
+        //Create error file
+        File errorFile = new File ("errorLog.txt");
+        try {
+            FileWriter fw = new FileWriter(errorFile);
+            fw.write(errorText);
+            fw.close();
+        } catch (IOException e)
+        {
+            System.out.println("Hiba történt a hibafájl írása során: " + e.getMessage());
+        }
+        //Display error info
+        System.out.println("A program futása során hiba történt. A hiba leírása a " + errorFile.getAbsolutePath() + " fájlban található.");
+        System.out.println("Nyomj Enter gombot a kilépéshez.");
+        Scanner scan = new Scanner(System.in);
+        scan.nextLine();
         System.exit(0); //Stop program
-        //TODO: Print error on screen and write to new text file
     }
 
     private static void UnpackZip(String inputDir, String[] inputFiles, String outputDir, HashSet<String> fileList) {
@@ -122,10 +132,12 @@ public class FileUnpacker {
 
     private static void ShowResult(HashSet<String> fileList) {
         if (fileList.size() > 0) {
-            System.out.println("A következő fájlok egyik zip fájlban sem voltak megtalálhatóak, ezért ezeket nem sikerült kicsomagolni:");
-            System.out.println(fileList);
+            ReportError("A következő fájlok egyik zip fájlban sem voltak megtalálhatóak, ezért ezeket nem sikerült kicsomagolni:" + fileList);
         }
-        System.out.println("A fájlok kicsomagolása véget ért.");
+        else
+        {
+            System.out.println("A fájlok kicsomagolása sikeresen megtörtént.");
+        }
     }
 
 }
