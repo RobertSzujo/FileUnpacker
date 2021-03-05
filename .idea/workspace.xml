@@ -24,6 +24,7 @@
     <configuration name="FileUnpacker" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="fileunpacker.FileUnpacker" />
       <module name="FileUnpacker" />
+      <option name="PROGRAM_PARAMETERS" value="C:\Users\Robi\Desktop\fileunpacker\input\ C:\Users\Robi\Desktop\fileunpacker\output\ C:\Users\Robi\Desktop\fileunpacker\txt\list.txt" />
       <extension name="coverage">
         <pattern>
           <option name="PATTERN" value="fileunpacker.*" />

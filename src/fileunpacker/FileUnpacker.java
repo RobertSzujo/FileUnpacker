@@ -13,15 +13,31 @@ import java.util.zip.ZipInputStream;
 public class FileUnpacker {
 
     public static void main(String[] args) {
-        //TODO: Make possible to choose your own directory/files.
-        String input = "C:\\Users\\Robi\\Desktop\\fileunpacker\\input\\";
-        String txt = "C:\\Users\\Robi\\Desktop\\fileunpacker\\txt\\list.txt";
-        String output = "C:\\Users\\Robi\\Desktop\\fileunpacker\\output\\";
+        CheckArgs(args);
+        String input = args[0];
+        String output = args[1];
+        String txt = args[2];
         HashSet<String> fileList = new HashSet<>();
         GetFileList(txt, fileList);
         String[] zipList = GetZipList(input);
         UnpackZip(input, zipList, output, fileList);
         ShowResult(fileList);
+    }
+
+    private static void CheckArgs(String[] args)
+    {
+        if (args.length < 3)
+        {
+            ReportError("Túl kevés paraméter került megadásra! Helyes használat: fileunpacker <zip fájlok mappája> <kicsomagolási mappa> <fájlok listáját tartalmazó szövegfájl>");
+        }
+        else if (args.length > 3)
+        {
+            ReportError("Túl sok paraméter került megadásra! Helyes használat: fileunpacker <zip fájlok mappája> <kicsomagolási mappa> <fájlok listáját tartalmazó szövegfájl>");
+        }
+        else
+        {
+            //TODO: check if file/folder path is valid
+        }
     }
 
     private static void GetFileList(String listFile, HashSet<String> fileList) {
