@@ -1,4 +1,4 @@
-package fileunpacker;
+package main.java.fileunpacker;
 
 import java.io.*;
 import java.util.*;
@@ -152,21 +152,21 @@ class ZipHandler {
     }
 
     public void unpackZipFiles(Map<String, Set<String>> fileLocations) {
-        for (String zipFile : fileLocations.keySet()) //Go through all files in zip file map
-            unpackOneZip(zipFile, fileLocations);
+        for (String currentZipFile : fileLocations.keySet()) //Go through all files in zip file map
+            unpackOneZip(currentZipFile, fileLocations);
     }
 
-    private void unpackOneZip(String zipFile, Map<String, Set<String>> fileLocations) {
+    private void unpackOneZip(String currentZipFile, Map<String, Set<String>> fileLocations) {
         try {
             //Load ZIP file as input stream, set buffer
-            FileInputStream fileInputStream = new FileInputStream(zipFile);
+            FileInputStream fileInputStream = new FileInputStream(currentZipFile);
             ZipInputStream zipInputStream = new ZipInputStream(fileInputStream);
             byte[] buffer = new byte[1024];
             //Load first file in zip
             ZipEntry zipEntry = zipInputStream.getNextEntry();
-            while (zipEntry != null && fileLocations.get(zipFile).size() > 0) {
+            while (zipEntry != null && fileLocations.get(currentZipFile).size() > 0) {
                 //Unpack needed files from zip one by one
-                unpackSingleFileFromZip(fileLocations, outputDir, zipFile, zipInputStream, buffer, zipEntry);
+                unpackSingleFileFromZip(fileLocations, outputDir, currentZipFile, zipInputStream, buffer, zipEntry);
                 //Load next file
                 zipEntry = zipInputStream.getNextEntry();
             }

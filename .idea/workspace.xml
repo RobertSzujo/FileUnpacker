@@ -25,19 +25,19 @@
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/src/main/java/fileunpacker/FileUnpacker.java" />
     <property name="project.structure.last.edited" value="Artifacts" />
     <property name="project.structure.proportion" value="0.15" />
     <property name="project.structure.side.proportion" value="0.2" />
   </component>
   <component name="RunManager">
     <configuration name="FileUnpacker" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="fileunpacker.FileUnpacker" />
+      <option name="MAIN_CLASS_NAME" value="main.java.fileunpacker.FileUnpacker" />
       <module name="FileUnpacker" />
       <option name="PROGRAM_PARAMETERS" value="C:\Users\Robi\Desktop\fileunpacker\input\ C:\Users\Robi\Desktop\fileunpacker\output\ C:\Users\Robi\Desktop\fileunpacker\txt\list.txt" />
       <extension name="coverage">
         <pattern>
-          <option name="PATTERN" value="fileunpacker.*" />
+          <option name="PATTERN" value="main.java.fileunpacker.*" />
           <option name="ENABLED" value="true" />
         </pattern>
       </extension>
@@ -47,6 +47,7 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Application.FileUnpacker" />
         <item itemvalue="Application.FileUnpacker" />
       </list>
     </recent_temporary>
